@@ -1,0 +1,180 @@
+﻿@*@model Web.Models.LoginModel*@
+@{
+	ViewBag.Title = "Customers";
+}
+@functions{
+	public string GetAntiForgeryToken() {
+		string cookieToken, formToken;
+		AntiForgery.GetTokens(null, out cookieToken, out formToken);
+		return cookieToken + ":" + formToken;
+	}
+}
+
+<header>
+	<h1>@ViewBag.Title</h1>
+</header>
+
+<div id="main-content">
+	<p class="error" data-bind="text: error"></p>
+	<input id="antiForgeryToken" type="hidden" value="@GetAntiForgeryToken()" />
+    
+    <div class="btn-group" data-toggle="buttons-radio">
+        <button type="button" 
+				data-bind="click:switchToCompanies, attr: {class: isCompany()? 'btn active' : 'btn'}">
+			Companies</button>
+        <button type="button"
+				data-bind="click: switchToPersons, attr: { class: !isCompany() ? 'btn active' : 'btn' }">
+			Persons</button>
+    </div>
+
+    <p><a href="#editCustomerModal" role="button" class="btn btn-primary" data-toggle="modal" 
+		data-bind="click: addCustomer">Add New Customer</a></p>
+
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Last Name</th>
+				<th>First Name</th>
+				<th>Phone Number</th>
+				<th>E-mail</th>
+				<th data-bind="sort: { arr: customers, prop: 'collaborationStartDate' }">Collaboration Start Date</th>
+				<th data-bind="sort: { arr: customers, prop: 'lastActivityDate' }">Last Activity Date</th>
+				<th data-bind="if: isCompany">Name</th>
+				<th data-bind="if: isCompany">Employees</th>
+				<th data-bind="if: !isCompany()">SSN</th>
+				<th data-bind="if: !isCompany()">Date of Birth</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody data-bind="foreach: pagedRows">
+			<tr>
+				<td>
+					<label data-bind="text: contactPersonLastName" />
+				</td>
+				<td>
+					<label data-bind="text: contactPersonFirstName" />
+				</td>
+				<td>
+					<label data-bind="text: phoneNumber" />
+				</td>
+				<td>
+					<label data-bind="text: email" />
+				</td>
+				<td>
+					<label data-bind="text: collaborationStartDate" />
+				</td>
+				<td>
+					<label data-bind="text: lastActivityDate" />
+				</td>
+
+				<td data-bind="if: isCompany">
+					<label data-bind="text: name" />
+				</td>
+				<td data-bind="if: isCompany">
+					<label data-bind="text: employeeCount" />
+				</td>
+
+				<td data-bind="if: !isCompany()">
+					<label data-bind="text: ssn" />
+				</td>
+				<td data-bind="if: !isCompany()">
+					<label data-bind="text: dateOfBirth" />
+				</td>
+
+				<td>
+                    <a class="btn btn-primary btn-mini" href="#editCustomerModal" role="button" data-toggle="modal" data-bind="click: $parent.editCustomer"><i class="icon-edit icon-white"></i>&nbsp;Edit</a>
+                    <button class="btn btn-danger btn-mini" data-bind="click: $parent.deleteCustomer"><i class="icon-trash icon-white"></i>&nbsp;Delete</button>
+				</td>
+			</tr>
+			<tr data-bind="visible: errorMessage" class="error">
+				<td colspan="8">
+					<p class="error" data-bind="visible: errorMessage, text: errorMessage"></p>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+    <a href="#" data-bind="click: previousPage, visible: pageIndex() > 0">Previous</a>
+    <a href="#" data-bind="click: nextPage, visible: pageIndex() < maxPageIndex()">Next</a>
+
+    <div data-bind="if: editVisible" class="modal hide fade" id="editCustomerModal" tabindex="-1" role="dialog" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel" data-bind="text: isCompanyEdited() ? 'Company' : 'Person'"></h3>
+        </div>
+        <div class="modal-body">
+            <table data-bind="if: editVisible">
+		        <tr>
+			        <td>Last Name</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().contactPersonLastName"></td>
+		        </tr>
+		        <tr>
+			        <td>First Name</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().contactPersonFirstName"></td>
+		        </tr>
+		        <tr>
+			        <td>Phone Number</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().phoneNumber"></td>
+		        </tr>
+		        <tr>
+			        <td>Email</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().email"></td>
+		        </tr>
+		        <tr>
+			        <td>Collaboration Start Date</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().collaborationStartDate"></td>
+		        </tr>
+		        <tr>
+			        <td>Last Activity Date</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().lastActivityDate"></td>
+		        </tr>
+		        <tr data-bind="if: isCompanyEdited">
+			        <td>Name</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().name"></td>
+		        </tr>
+		        <tr data-bind="if: isCompanyEdited">
+			        <td>Employees</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().employeeCount"></td>
+		        </tr>
+		        <tr data-bind="if: !isCompanyEdited()">
+			        <td>SSN</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().ssn"></td>
+		        </tr>
+		        <tr data-bind="if: !isCompanyEdited()">
+			        <td>Date of birth</td>
+			        <td>
+				        <input type="text" data-bind="value: currentCustomer().dateOfBirth"></td>
+		        </tr>
+	        </table>
+			<div class="btn-group" data-toggle="buttons-radio" data-bind="if: isAddingNewCustomer">
+				<button type="button" 
+						data-bind="click: toggleNewCompany, attr: { class: isCompanyEdited() ? 'btn active' : 'btn' }">
+					Company</button>
+				<button type="button"
+						data-bind="click: toggleNewCompany, attr: { class: !isCompanyEdited() ? 'btn active' : 'btn' }">
+					Person</button>
+			</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" 
+				data-bind="click: updateCustomer, text: isAddingNewCustomer()? 'Add' : 'Update'"/>
+            <button class="btn" data-dismiss="modal" aria-hidden="true" data-bind="click: cancelEdit, text: 'Cancel'"/>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+	@Scripts.Render("~/bundles/knockout")
+	@Scripts.Render("~/bundles/jqueryval")
+	@Scripts.Render("~/bundles/customer")
+}
