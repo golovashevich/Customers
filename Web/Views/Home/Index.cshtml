@@ -154,6 +154,11 @@
 			        <td>
 				        <input type="text" data-bind="value: currentCustomer().dateOfBirth"></td>
 		        </tr>
+                <tr class="error" data-bind="visible: errorOnModalWindow">
+				    <td colspan="2">
+                        <p class="error" data-bind="visible: errorOnModalWindow, text: errorOnModalWindow"></p>
+				    </td>
+			    </tr>
 	        </table>
 			<div class="btn-group" data-toggle="buttons-radio" data-bind="if: isAddingNewCustomer">
 				<button type="button" 

@@ -11,9 +11,11 @@ ko.validation.configure({
 window.todoApp.customersViewModel = (function (ko, datacontext) {
 	var customers = ko.observableArray(),
     error = ko.observable(),
+    errorOnModalWindow = ko.observable(),
 
     addCustomer = function () {
         isAddingNewCustomer(true);
+        errorOnModalWindow(null);
         var customer = datacontext.createCompanyPerson();
         customer.isCompany(isCompany());
         currentCustomer(customer);
@@ -43,16 +45,19 @@ window.todoApp.customersViewModel = (function (ko, datacontext) {
 				.done(function (result) {
 					if (isCompanyEdited() == isCompany()) {
 						customers.unshift(_currentCustomerInList);
+						editVisible(false);
+						$('#editCustomerModal').modal('hide');
 					}
+				})
+				.fail(function (result) {
+					errorOnModalWindow(_currentCustomerInList.errorMessage());
 				});
 		}
-
-		editVisible(false);
-		$('#editCustomerModal').modal('hide');
 	},
 
 	editCustomer = function (customer) {
 		isAddingNewCustomer(false);
+		errorOnModalWindow(null);
 		isCompanyEdited(isCompany());
 		_currentCustomerInList = customer;
 		currentCustomer(customer);
@@ -150,6 +155,7 @@ window.todoApp.customersViewModel = (function (ko, datacontext) {
 		editVisible: editVisible,
 		isCompany: isCompany,
 		error: error,
+		errorOnModalWindow: errorOnModalWindow,
 		isAddingNewCustomer: isAddingNewCustomer, 
 		addCustomer: addCustomer,
 		editCustomer: editCustomer,
